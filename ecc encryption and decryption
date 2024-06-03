@@ -1,0 +1,103 @@
+#include <iostream>
+#include <string>
+#include <vector>
+
+// Curve parameters
+const int a = 2;
+const int b = 3;
+const int p = 17; // Prime number
+
+// Point on the curve
+struct Point {
+    int x, y;
+};
+
+// Add two points on the curve
+Point addPoints(Point P, Point Q) {
+    Point R;
+    
+    int lambda, inv;
+    
+    if (P.x == Q.x && P.y == Q.y) {
+        lambda = ((3 * P.x * P.x + a) * (2 * P.y)) % p;
+        inv = 1;
+    } else {
+        lambda = ((Q.y - P.y) * ((Q.x - P.x) + p)) % p;
+        inv = ((Q.x - P.x) + p) % p;
+    }
+    
+    for (int i = 1; i < p; i++) {
+        if ((lambda * i) % p == 1) {
+            inv = i;
+            break;
+        }
+    }
+    
+    R.x = (lambda * lambda - P.x - Q.x) % p;
+    R.y = (lambda * (P.x - R.x) - P.y) % p;
+    
+    return R;
+}
+
+// Generate a public key based on a private key
+Point generatePublicKey(int privateKey) {
+    Point publicKey;
+    publicKey.x = (privateKey * a) % p;
+    publicKey.y = (privateKey * b) % p;
+    return publicKey;
+}
+
+// Encrypt a message using the elliptic curve cryptography
+std::string encryptMessage(std::string message, Point publicKey) {
+    std::string encryptedMessage = "";
+    
+    for (char c : message) {
+        Point P = {c % p, c % p}; // Generate a point on the curve based on the character
+        
+        Point Q = addPoints(P, publicKey); // Add the public key to the point
+        
+        encryptedMessage += std::to_string(Q.x) + " " + std::to_string(Q.y) + " ";
+    }
+    
+    return encryptedMessage;
+}
+
+// Decrypt a message using the elliptic curve cryptography
+std::string decryptMessage(std::string encryptedMessage, int privateKey) {
+    std::string decryptedMessage = "";
+    
+    std::vector<std::string> tokens;
+    std::istringstream iss(encryptedMessage);
+    
+    std::string token;
+    while (iss >> token) {
+        tokens.push_back(token);
+    }
+    
+    for (int i = 0; i < tokens.size(); i += 2) {
+        Point Q = {std::stoi(tokens[i]), std::stoi(tokens[i + 1])};
+        
+        Point P = {Q.x * privateKey, Q.y * privateKey};
+        
+        char c = (char)(P.x + P.y);
+        decryptedMessage += c;
+    }
+    
+    return decryptedMessage;
+}
+
+int main() {
+    int privateKey = 7; // Private key
+    
+    Point publicKey = generatePublicKey(privateKey); // Generate public key
+    
+    std::string message = "Hello, World!";
+    
+    std::string encryptedMessage = encryptMessage(message, publicKey);
+    std::cout << "Encrypted message: " << encryptedMessage << std::endl;
+    
+    std::string decryptedMessage = decryptMessage(encryptedMessage, privateKey);
+    std::cout << "Decrypted message: " << decryptedMessage << std::endl;
+    
+    return 0;
+}
