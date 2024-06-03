@@ -1,0 +1,29 @@
+#include <iostream>
+#include <string>
+#include <cryptopp/sha.h>
+#include <cryptopp/hex.h>
+#include <cryptopp/filters.h>
+
+std::string sha256(const std::string& input) {
+    CryptoPP::SHA256 hash;
+    std::string digest;
+    
+    CryptoPP::StringSource(input, true,
+        new CryptoPP::HashFilter(hash,
+            new CryptoPP::HexEncoder(
+                new CryptoPP::StringSink(digest)
+            )
+        )
+    );
+    
+    return digest;
+}
+
+int main() {
+    std::string input = "Hello, World!";
+    std::string result = sha256(input);
+    
+    std::cout << "SHA-256 hash of '" << input << "' is: " << result << std::endl;
+    
+    return 0;
+}
