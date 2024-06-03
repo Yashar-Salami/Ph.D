@@ -1,0 +1,47 @@
+#include <iostream>
+#include <cmath>
+
+// Function to calculate power in modular arithmetic
+long long int power(long long int base, long long int exp, long long int mod) {
+    if (exp == 0) {
+        return 1;
+    }
+    long long int result = 1;
+    base = base % mod;
+    while (exp > 0) {
+        if (exp % 2 == 1) {
+            result = (result * base) % mod;
+        }
+        base = (base * base) % mod;
+        exp = exp / 2;
+    }
+    return result;
+}
+
+int main() {
+    // Public prime number (shared between Alice and Bob)
+    long long int p = 23;
+    // Generator (shared between Alice and Bob)
+    long long int g = 5;
+    
+    // Alice's private key
+    long long int a = 6;
+    // Bob's private key
+    long long int b = 15;
+    
+    // Alice's public key
+    long long int A = power(g, a, p);
+    // Bob's public key
+    long long int B = power(g, b, p);
+    
+    // Shared secret key calculated by Alice
+    long long int secretKeyA = power(B, a, p);
+    // Shared secret key calculated by Bob
+    long long int secretKeyB = power(A, b, p);
+    
+    std::cout << "Alice's public key: " << A << std::endl;
+    std::cout << "Bob's public key: " << B << std::endl;
+    std::cout << "Shared secret key calculated by Alice: " << secretKeyA << std::endl;
+    std::cout << "Shared secret key calculated by Bob: " << secretKeyB << std::endl;
+    
+    return 0;
